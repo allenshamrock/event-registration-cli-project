@@ -8,9 +8,9 @@ class Event(Base):
     __tablename__ = 'events'
 
     id = Column(Integer, primary_key=True)
-    event_name = Column(String)
+    event_name = Column(String, unique=True, nullable=False)
     date = Column(Date)
-    location = Column(String)
+    location = Column(String, unique=True, nullable=False)
     registration_deadline = Column(Date)
     organiser_id = Column(Integer, ForeignKey('organisers.id'))
     organiser = relationship("Organiser", back_populates="events")
@@ -24,3 +24,5 @@ class Event(Base):
 
     def __repr__(self):
         return f"Event(id={self.id}, name={self.event_name}, date={self.date}, location={self.location}, registration_deadline={self.registration_deadline})"
+
+    

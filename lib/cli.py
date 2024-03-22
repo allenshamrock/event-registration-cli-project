@@ -1,6 +1,8 @@
 from helpers import (
     exit_program,
-    helper_1
+    register_attendee,
+    check_registration_status
+   
 )
 
 
@@ -11,15 +13,19 @@ def main():
         if choice == "0":
             exit_program()
         elif choice == "1":
-            helper_1()
-        else:
-            print("Invalid choice")
+            register_attendee()
+        elif choice == "2":
+            check_registration_status()
+        else: 
+           print("Invalid choice")
 
 
 def menu():
-    print("Please select an option:")
+    print("\nWelcome to Event Registration System\n")
     print("0. Exit the program")
-    print("1. Some useful function")
+    print("1. Register for an event")
+    print("2. Check registration status")
+    print("3. Exit")
 
 
 if __name__ == "__main__":

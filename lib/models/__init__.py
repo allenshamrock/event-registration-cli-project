@@ -5,7 +5,7 @@ Base = declarative_base()
 
 db_uri = "event-registration.db"
 
-engine = create_engine(f"sqlite:///{db_uri}")
+engine = create_engine(f"sqlite:///lib/{db_uri}")
 Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 session = Session()
