@@ -4,6 +4,7 @@ from sqlalchemy.orm import relationship
 
 
 
+
 class Organiser(Base):
     __tablename__ = 'organisers'
 
