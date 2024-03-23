@@ -1,3 +1,4 @@
+from models import Event, Registration, session
 from models import Event,session,Registration,Organiser
 from datetime import date
 
@@ -27,7 +28,7 @@ def register_attendee():
                 registration = Registration(
                     attendee_name=attendee_name,
                     attendee_email=attendee_email,
-                    registration_status="pending",
+                    registration_status="confirmed",
                     event_id=event_id
                 )
                 session.add(registration)
@@ -61,50 +62,94 @@ def check_registration_status():
     else:
         print("No registrations found for the provided email.")
 
-def create_event(organiser,event_name,registration_deadline,date,location):
-    new_event = Event(event_name=event_name,location=location,registration_deadline=registration_deadline,date=date)
-    new_event.organiser = organiser 
+
+def create_event(organiser, event_name, registration_deadline, date, location,datetime):
+    # Check if the registration deadline is in the future
+    if registration_deadline < datetime.now().date():
+        print("Registration deadline must be in the future.")
+        return
+    # Check if the date is in the future
+    if date < datetime.now().date():
+        print("Event date must be in the future.")
+        return
+    # Check if the event name is provided
+    if not event_name:
+        print("Event name is required.")
+        return
+    # Check if the location is provided
+    if not location:
+        print("Location is required.")
+        return
+    # Ensure that the registration deadline is before the event date
+    if registration_deadline >= date:
+        print("Registration deadline must be before the event date.")
+        return
+    # Create the new event
+    new_event = Event(event_name=event_name, location=location,
+                      registration_deadline=registration_deadline, date=date)
+    new_event.organiser = organiser
     session.add(new_event)
     session.commit()
 
 
 def manage_registrations(organiser):
     events = organiser.events
-    if events:
-        print("Your Events:")
-        for event in events:
-            print(f"{event.id}: {event.event_name} - {event.date}")
 
+    if not events:
+        print("You have no events.")
+        return
+
+    print("Your Events:")
+    for event in events:
+        print(f"{event.id}: {event.event_name} - {event.date}")
+
+    try:
         event_id = int(
             input("Enter the ID of the event to manage registrations: "))
-        event = session.query(Event).filter(
-            Event.id == event_id, Event.organiser_id == organiser.id).first()
+    except ValueError:
+        print("Invalid input. Please enter a valid integer ID.")
+        return
 
-        if event:
-            registrations = event.registrations
-            print("Registrations for", event.event_name)
-            for registration in registrations:
-                print(
-                    f"ID: {registration.id}, Attendee Name: {registration.attendee_name}, Status: {registration.registration_status}")
+    event = session.query(Event).filter(
+        Event.id == event_id, Event.organiser_id == organiser.id).first()
 
-            registration_id = int(
-                input("Enter the ID of the registration to manage (0 to cancel): "))
-            if registration_id != 0:
-                new_status = input(
-                    "Enter new status (confirmed/pending/cancelled): ")
-                registration = session.query(Registration).filter(
-                    Registration.id == registration_id).first()
-                if registration:
-                    registration.registration_status = new_status
-                    session.commit()
-                    print("Registration status updated.")
-                else:
-                    print("Registration not found.")
-        else:
-            print(
-                "Invalid event ID or you do not have access to manage registrations for this event.")
-    else:
-        print("You have no events.")
+    if not event:
+        print("Invalid event ID or you do not have access to manage registrations for this event.")
+        return
+
+    registrations = event.registrations
+
+    print("Registrations for", event.event_name)
+    for registration in registrations:
+        print(f"ID: {registration.id}, Attendee Name: {registration.attendee_name}, Status: {registration.registration_status}")
+
+    try:
+        registration_id = int(
+            input("Enter the ID of the registration to manage (0 to cancel): "))
+    except ValueError:
+        print("Invalid input. Please enter a valid integer ID.")
+        return
+
+    if registration_id == 0:
+        return
+
+    registration = session.query(Registration).filter(
+        Registration.id == registration_id).first()
+
+    if not registration:
+        print("Registration not found.")
+        return
+
+    new_status = input("Enter new status (confirmed/pending/cancelled): ")
+
+    if new_status not in ['confirmed', 'pending', 'cancelled']:
+        print("Invalid status. Please enter either 'confirmed', 'pending', or 'cancelled'.")
+        return
+
+    registration.registration_status = new_status
+    session.commit()
+    print("Registration status updated.")
+
 
 
 
@@ -114,30 +159,65 @@ def send_notification(organiser, event_id, message):
     if event:
         attendees = [
             registration.attendee_email for registration in event.registrations]
-        print("Sending notification to attendees:", attendees)
+        print(f"{message}:", attendees)
         # Logic to send notification
     else:
         print("Event not found.")
 
 
-
 def register_organiser():
     print("Please provide the following information to register an organiser:")
+
+    # Get organiser name
     organiser_name = input("Organiser Name: ")
+
+    # Validate organiser name
+    if not organiser_name:
+        print("Organiser name cannot be empty.")
+        return
+
+    # Get organiser email
     organiser_email = input("Organiser Email: ")
 
+    # Validate organiser email
+    if not organiser_email:
+        print("Organiser email cannot be empty.")
+        return
+
+    # Check if organiser with provided email already exists
+    existing_organiser = session.query(Organiser).filter(
+        Organiser.organiser_email == organiser_email).first()
+    if existing_organiser:
+        print("An organiser with this email already exists.")
+        return
+
+    # Create the organiser object
     organiser = Organiser(
         organiser_name=organiser_name,
         organiser_email=organiser_email
     )
-    session.add(organiser)
-    session.commit()
-    print("Organiser registration successful!")
+
+    try:
+        # Add organiser to the session and commit
+        session.add(organiser)
+        session.commit()
+        print("Organiser registration successful!")
+    except Exception as e:
+        # Handle exceptions during registration
+        print("An error occurred during organiser registration:", e)
+        session.rollback()
 
 
 def view_events_by_organiser():
     organiser_email = input(
         "Enter the email of the organiser to view their events: ")
+
+    # Validate organiser email
+    if not organiser_email:
+        print("Organiser email cannot be empty.")
+        return
+
+    # Check if organiser with provided email exists
     organiser = session.query(Organiser).filter(
         Organiser.organiser_email == organiser_email).first()
     if organiser:
