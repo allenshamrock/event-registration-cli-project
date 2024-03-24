@@ -7,13 +7,18 @@ from helpers import (
     send_notification,
     register_organiser,
     view_events_by_organiser,
+    update_event,
+    delete_event
    
 )
 from models import session,Organiser
-from datetime import date
+from datetime import datetime
+
+organiser = None
 
 
 def main():
+    global organiser 
     while True:
         menu()
         choice = input("> ")
@@ -54,16 +59,22 @@ def main():
                 location = input("Location: ")
                 registration_deadline = input(
                     "Registration Deadline (YYYY-MM-DD): ")
-                create_event(organiser, event_name, registration_deadline, date.fromisoformat(
-                    event_date), location)
+                create_event(organiser, event_name,
+                             registration_deadline, event_date, location)
             else:
                 print("Organiser not found.")
+        elif choice == "8":
+            if organiser:
+                update_event(session, organiser)
+        elif choice == "9":
+            if organiser:
+                delete_event(session, organiser)
         else: 
            print("Invalid choice")
 
 
 def menu():
-    print("\nWelcome to Event Registration System\n")
+    print("\nWelcome to  System\n")
     print("0.Exit the program")
     print("1.Register for an event")
     print("2.Check registration status")
@@ -72,6 +83,8 @@ def menu():
     print("5.View events by Organiser")
     print("6.Send Notifications")
     print("7.Create event")
+    print("8.Update event")
+    print("9.Delete event")
 
 if __name__ == "__main__":
     main()

@@ -1,6 +1,6 @@
 from models import Event, Registration, session
 from models import Event,session,Registration,Organiser
-from datetime import date
+from datetime import datetime
 
 def get_required_input(prompt):
     while True:
@@ -63,13 +63,15 @@ def check_registration_status():
         print("No registrations found for the provided email.")
 
 
-def create_event(organiser, event_name, registration_deadline, date, location,datetime):
+def create_event(organiser, event_name, registration_deadline, event_date, location):
+    registration_deadline_date = datetime.strptime(registration_deadline, "%Y-%m-%d").date()
+    event_date_date = datetime.strptime(event_date, "%Y-%m-%d").date()
     # Check if the registration deadline is in the future
-    if registration_deadline < datetime.now().date():
+    if registration_deadline_date < datetime.now().date():
         print("Registration deadline must be in the future.")
         return
-    # Check if the date is in the future
-    if date < datetime.now().date():
+    # Check if the event date is in the future
+    if event_date_date < datetime.now().date():
         print("Event date must be in the future.")
         return
     # Check if the event name is provided
@@ -81,12 +83,14 @@ def create_event(organiser, event_name, registration_deadline, date, location,da
         print("Location is required.")
         return
     # Ensure that the registration deadline is before the event date
-    if registration_deadline >= date:
+    if registration_deadline_date >= event_date_date:
         print("Registration deadline must be before the event date.")
         return
+
     # Create the new event
+    print("Event created successfully.")
     new_event = Event(event_name=event_name, location=location,
-                      registration_deadline=registration_deadline, date=date)
+                      registration_deadline=registration_deadline_date, date=event_date_date)
     new_event.organiser = organiser
     session.add(new_event)
     session.commit()
@@ -226,6 +230,79 @@ def view_events_by_organiser():
             print(f"{event.id}: {event.event_name} - {event.date}")
     else:
         print("Organiser not found.")
+
+
+
+def update_event(session, organiser):
+    organiser = input("Please provide organiser email: ")
+    if not organiser:
+        print("Please enter the organiser.")
+        return
+
+    events = organiser.events
+    if not events:
+        print("You have no events.")
+        return
+
+    print("Your events:")
+    for event in events:
+        print(f"{event.id} {event.event_name} - {event.date}")
+
+    event_id = int(input("Enter the ID of the event to update: "))
+    event = session.query(Event).filter(
+        Event.id == event_id, Event.organiser_id == organiser.id).first()
+
+    if not event:
+        print("Invalid event ID or you do not have access to update this event.")
+        return
+
+    new_name = input(
+        "Enter the new name for the event (leave empty to keep current name): ")
+    new_date = input(
+        "Enter the new date for the event in YYYY-MM-DD format (leave empty to keep current date): ")
+
+    if new_name:
+        event.event_name = new_name
+    if new_date:
+        event.date = new_date
+
+    session.commit()
+    print("Event updated successfully.")
+
+
+def delete_event(session, organiser):
+    if not organiser:
+        print("Organiser not found.")
+        return
+
+    events = organiser.events
+    if not events:
+        print("You have no events.")
+        return
+
+    print("Your events:")
+    for event in events:
+        print(f"{event.id} {event.event_name} - {event.date}")
+
+    event_id = int(input("Enter the ID of the event to delete: "))
+    event = session.query(Event).filter(
+        Event.id == event_id, Event.organiser_id == organiser.id).first()
+
+    if not event:
+        print("Invalid event ID or you do not have access to delete this event.")
+        return
+
+    confirm = input(
+        f"Are you sure you want to delete the event '{event.event_name}'? (yes/no): ").strip().lower()
+
+    if confirm == "yes":
+        session.delete(event)
+        session.commit()
+        print("Event deleted successfully.")
+    else:
+        print("Deletion cancelled.")
+
+
 def exit_program():
     print("Goodbye!")
     exit()
