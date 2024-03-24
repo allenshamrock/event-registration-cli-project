@@ -232,23 +232,23 @@ def view_events_by_organiser():
         print("Organiser not found.")
 
 
-
-def update_event(session, organiser):
-    organiser = input("Please provide organiser email: ")
-    if not organiser:
-        print("Please enter the organiser.")
-        return
-
+def update_event(organiser):
     events = organiser.events
+
     if not events:
         print("You have no events.")
         return
 
-    print("Your events:")
+    print("Your Events:")
     for event in events:
-        print(f"{event.id} {event.event_name} - {event.date}")
+        print(f"{event.id}: {event.event_name} - {event.date}")
 
-    event_id = int(input("Enter the ID of the event to update: "))
+    try:
+        event_id = int(input("Enter the ID of the event to update: "))
+    except ValueError:
+        print("Invalid input. Please enter a valid integer ID.")
+        return
+
     event = session.query(Event).filter(
         Event.id == event_id, Event.organiser_id == organiser.id).first()
 
@@ -256,35 +256,53 @@ def update_event(session, organiser):
         print("Invalid event ID or you do not have access to update this event.")
         return
 
-    new_name = input(
-        "Enter the new name for the event (leave empty to keep current name): ")
-    new_date = input(
-        "Enter the new date for the event in YYYY-MM-DD format (leave empty to keep current date): ")
+    print("Current Event Details:")
+    print(f"Name: {event.event_name}")
+    print(f"Location: {event.location}")
+    print(f"Registration Deadline: {event.registration_deadline}")
+    print(f"Event Date: {event.date}")
 
-    if new_name:
-        event.event_name = new_name
-    if new_date:
-        event.date = new_date
+    # Prompt user for updated information
+    event_name = input(
+        "Enter updated event name (leave blank to keep current): ")
+    location = input("Enter updated location (leave blank to keep current): ")
+    registration_deadline = input(
+        "Enter updated registration deadline in YYYY-MM-DD format (leave blank to keep current): ")
+    event_date = input(
+        "Enter updated event date in YYYY-MM-DD format (leave blank to keep current): ")
+
+    # Update event if input provided
+    if event_name.strip():
+        event.event_name = event_name
+    if location.strip():
+        event.location = location
+    if registration_deadline.strip():
+        event.registration_deadline = datetime.strptime(
+            registration_deadline, "%Y-%m-%d").date()
+    if event_date.strip():
+        event.date = datetime.strptime(event_date, "%Y-%m-%d").date()
 
     session.commit()
     print("Event updated successfully.")
 
 
-def delete_event(session, organiser):
-    if not organiser:
-        print("Organiser not found.")
-        return
-
+def delete_event(organiser):
     events = organiser.events
+
     if not events:
         print("You have no events.")
         return
 
-    print("Your events:")
+    print("Your Events:")
     for event in events:
-        print(f"{event.id} {event.event_name} - {event.date}")
+        print(f"{event.id}: {event.event_name} - {event.date}")
 
-    event_id = int(input("Enter the ID of the event to delete: "))
+    try:
+        event_id = int(input("Enter the ID of the event to delete: "))
+    except ValueError:
+        print("Invalid input. Please enter a valid integer ID.")
+        return
+
     event = session.query(Event).filter(
         Event.id == event_id, Event.organiser_id == organiser.id).first()
 
@@ -293,9 +311,9 @@ def delete_event(session, organiser):
         return
 
     confirm = input(
-        f"Are you sure you want to delete the event '{event.event_name}'? (yes/no): ").strip().lower()
+        f"Are you sure you want to delete event '{event.event_name}'? (yes/no): ").lower()
 
-    if confirm == "yes":
+    if confirm == 'yes':
         session.delete(event)
         session.commit()
         print("Event deleted successfully.")
@@ -303,6 +321,7 @@ def delete_event(session, organiser):
         print("Deletion cancelled.")
 
 
+
 def exit_program():
-    print("Goodbye!")
+    print("Have fun,Dont drink & drive")
     exit()

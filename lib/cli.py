@@ -14,11 +14,8 @@ from helpers import (
 from models import session,Organiser
 from datetime import datetime
 
-organiser = None
-
 
 def main():
-    global organiser 
     while True:
         menu()
         choice = input("> ")
@@ -64,11 +61,21 @@ def main():
             else:
                 print("Organiser not found.")
         elif choice == "8":
-            if organiser:
-                update_event(session, organiser)
+                    organiser_email = input("Enter your email: ")
+                    organiser = session.query(Organiser).filter(Organiser.organiser_email == organiser_email).first()
+
+                    if not organiser:
+                        print("Organiser not found.")
+                        return
+                    update_event(organiser)
         elif choice == "9":
-            if organiser:
-                delete_event(session, organiser)
+                organiser_email = input("Enter your email: ")
+                organiser = session.query(Organiser).filter(Organiser.organiser_email == organiser_email).first()
+
+                if not organiser:
+                        print("Organiser not found.")
+                        return
+                delete_event(organiser)
         else: 
            print("Invalid choice")
 

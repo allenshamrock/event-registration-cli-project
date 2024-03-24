@@ -10,7 +10,7 @@ class Organiser(Base):
 
     id = Column(Integer, primary_key=True)
     organiser_name = Column(String, unique=True, nullable=False)
-    organiser_email = Column(String, unique=True, nullable=False)
+    organiser_email = Column(String, nullable=False)
     events = relationship("Event", back_populates="organiser")
 
     def __init__(self, organiser_name, organiser_email):
