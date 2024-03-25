@@ -13,7 +13,7 @@ def seed_data():
 
     # Create organiser
     organiser1 = Organiser("Unruly Tour", "unruly@example.com")
-    organiser2 = Organiser("Thrift Social Nairobi", "thriftsocial@co.ke")
+    organiser2 = Organiser("Thrift Social Nairobi", "thriftsocial.co.ke")
     organiser3 = Organiser("Pop-up", "fashiontrends@gmail.com")
     organiser4 = Organiser("Afrosayari", "afrosayari.co.ke")
     organiser5 = Organiser("solFest" , "solfest@gmail.com")
@@ -45,7 +45,7 @@ def seed_data():
     event7 = Event("Throwback Thursday ", date(2024, 12, 8),
                    "Nairobi street Kitchen", date(2024, 8, 8))
     event7.organiser = organiser7
-    event8 = Event("Zozzanation", date(2024, 7, 7),
+    event8 = Event("Amapiano", date(2024, 7, 7),
                    "Cavali", date(2024, 11, 7))
     event8.organiser = organiser8
     session.add_all([event1, event2, event3, event4,event5,event6,event7,event8])
