@@ -119,6 +119,7 @@ def create_event():
     session.add(new_event)
     session.commit()
 
+
 @click.command()
 @click.option('--organiser_email', prompt="Enter organiser email:", help="Email of the organiser to manage registrations for.")
 def manage_registrations(organiser_email):
@@ -156,7 +157,7 @@ def manage_registrations(organiser_email):
 
     registrations = event.registrations
 
-    click.echo("Registrations for", event.event_name)
+    click.echo(f"Registrations for {event.event_name}")
     for registration in registrations:
         click.echo(
             f"ID: {registration.id}, Attendee Name: {registration.attendee_name}, Status: {registration.registration_status}")
